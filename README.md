@@ -11,15 +11,15 @@ Basic usecase: setup your voxrec.me transfer settings to point to 'voxrec-voiceb
 
 ### Install
 
-`npm install -g serverless`
+To install serverless run `npm install -g serverless`
+
+Run `npm install` in this project's folder to install its node dependencies.
 
 ### Auth against aws
 
 serverless config credentials --provider aws --key 'Access key ID' --secret 'Secret access key'
 
 ### Setup
-
-Run `npm install` in this project's folder to install its node dependencies. I
 
 You will need to edit the serveless.yml file with your desired settings
 
