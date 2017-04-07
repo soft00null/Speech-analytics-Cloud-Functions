@@ -20,7 +20,7 @@ serverless config credentials --provider aws --key 'Access key ID' --secret 'Sec
 ### Setup
 You will need to edit the serveless.yml file with your desired settings
 
-`VOICEBASE_BEARER_TOKEN`: The Bearer token that you get from voicebase gives for access to their API.
+`VOICEBASE_BEARER_TOKEN`: The Bearer token that you get from voicebase to access their API.
 
 `HOOK_URL`: The URL where voicebase api will return the completion status after processing our file. This normally will match the AWS CloudFormation URL where this is deployed. Should point to "voicebase" endpoint.
 
