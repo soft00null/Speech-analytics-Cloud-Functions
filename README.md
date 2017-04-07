@@ -18,6 +18,9 @@ Basic usecase: setup your voxrec.me transfer settings to point to 'voxrec-voiceb
 serverless config credentials --provider aws --key 'Access key ID' --secret 'Secret access key'
 
 ### Setup
+
+Run `npm install` in this project's folder to install its node dependencies. I
+
 You will need to edit the serveless.yml file with your desired settings
 
 `VOICEBASE_BEARER_TOKEN`: The Bearer token that you get from voicebase to access their API.
