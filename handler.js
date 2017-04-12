@@ -181,7 +181,7 @@ module.exports.googlespeech = (event, context, callback) => {
     var sendTranscriptOptions = {
       url: process.env.TRANSCRIPT_CALLBACK_URL,
       method: 'POST',
-      json: transcription
+      json: {transcription}
     };
 
     console.log(sendTranscriptOptions);
