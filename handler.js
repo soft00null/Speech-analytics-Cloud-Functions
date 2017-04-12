@@ -5,19 +5,12 @@ module.exports.voicebasehook = (event, context, callback) => {
   var request = require('request');
   AWS.config.update({ accessKeyId: process.env.SERVERLESS_AWS_ACCESS_KEY_ID, secretAccessKey: process.env.SERVERLESS_AWS_SECRET_ACCESS_KEY });
   var mediaId = JSON.parse(event.body).media.mediaId;
+  var s3 = new AWS.S3();
 
-  var sendTranscriptOptions = {
-    url: process.env.TRANSCRIPT_CALLBACK_URL,
-    method: 'POST',
-    json: JSON.parse(event.body)
-  };
+  console.log(event.body);
 
-  console.log(sendTranscriptOptions);
-
-  request(sendTranscriptOptions, function(error, response, body){
-    if (!error)
-      console.log("Successfully sent voicebase transcript to callback url");
-  });
+  var content = JSON.parse(event.body).media.text;
+  createTranscriptionLog(content, s3, mediaId, 'voicebase');
 
   var getFileOptions = {
     url: 'https://apis.voicebase.com/v2-beta/media/' + mediaId + "/streams",
@@ -37,16 +30,15 @@ module.exports.voicebasehook = (event, context, callback) => {
         console.log("failed to get file");
         console.log(error);
       } else {
-        var s3 = new AWS.S3();
         s3.putObject({
           Body: body,
           Key: mediaId + '-redacted.wav',
           Bucket: 'voxrec-voicebase-poc-redacted'
         }, function(error, data) {
           if (error) {
-            console.log("error downloading image to s3");
+            console.log("error uploading redacted file to s3");
           } else {
-            console.log("success uploading to s3");
+            console.log("success uploading redacted file to s3");
           }
         });
       }
@@ -160,10 +152,12 @@ module.exports.voicebase = (event, context, callback) => {
 
 
 module.exports.googlespeech = (event, context, callback) => {
+  var AWS = require('aws-sdk');
+  AWS.config.update({ accessKeyId: process.env.SERVERLESS_AWS_ACCESS_KEY_ID, secretAccessKey: process.env.SERVERLESS_AWS_SECRET_ACCESS_KEY });
+  var s3 = new AWS.S3();
   var speech = require('@google-cloud/speech');
-  var request = require('request');
-  const RESOURCE_URL = 'https://s3.amazonaws.com/' + event.Records[0].s3.bucket.name + '/' + event.Records[0].s3.object.key
-  console.log(RESOURCE_URL);
+
+  const RESOURCE_URL = 'https://s3.amazonaws.com/' + event.Records[0].s3.bucket.name + '/' + event.Records[0].s3.object.key;
 
   var speechClient = speech({
     projectId: 'voxbone-workshop',
@@ -178,19 +172,21 @@ module.exports.googlespeech = (event, context, callback) => {
   speechClient.recognize(RESOURCE_URL, options)
   .then((results) => {
     const transcription = results[0];
-    var sendTranscriptOptions = {
-      url: process.env.TRANSCRIPT_CALLBACK_URL,
-      method: 'POST',
-      json: {transcription}
-    };
-
-    console.log(sendTranscriptOptions);
-
-    request(sendTranscriptOptions, function(error, response, body){
-      if (!error)
-        console.log("Successfully sent googlespeech transcript to callback url");
-      else
-        console.log(error);
-    });
+    createTranscriptionLog(transcription, s3, event.Records[0].s3.object.key, 'googlespeech');
   });
 };
+
+function createTranscriptionLog(content, s3, filename, identifier) {
+  s3.putObject({
+    Body: JSON.stringify(content),
+    Key: filename + '-' + identifier + '-transcription.json',
+    Bucket: 'voxrec-voicebase-proof-of-concept'
+  }, function(error, data) {
+    if (error) {
+      console.log("error uploading log to s3");
+      console.log(error);
+    } else {
+      console.log("success uploading log to s3");
+    }
+  });
+}
