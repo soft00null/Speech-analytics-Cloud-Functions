@@ -137,7 +137,7 @@ module.exports.voicebase = (event, context, callback) => {
     },
     Outputs: [
       {
-        Key: FILE_NAME + '.flac',
+        Key: FILE_NAME.replace(".wav", "") + '.flac',
         PresetId: '1491945029791-ltldjb'
       }
     ]
