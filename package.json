@@ -5,7 +5,8 @@
   "main": "handler.js",
   "dependencies": {
     "request": "^2.81.0",
-    "aws-sdk": "latest"
+    "aws-sdk": "latest",
+    "@google-cloud/speech": "latest"
   },
   "devDependencies": {},
   "scripts": {

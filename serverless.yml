@@ -4,15 +4,15 @@ provider:
   name: aws
   runtime: nodejs6.10
   environment:
-    VOICEBASE_BEARER_TOKEN: 'Bearer **************'
-    HOOK_URL: '**************'
-    SERVERLESS_AWS_ACCESS_KEY_ID: '**************'
-    SERVERLESS_AWS_SECRET_ACCESS_KEY: '**************'
-    TRANSCRIPT_CALLBACK_URL: '**************'
+    VOICEBASE_BEARER_TOKEN: '******************'
+    HOOK_URL: '******************'
+    SERVERLESS_AWS_ACCESS_KEY_ID: '******************'
+    SERVERLESS_AWS_SECRET_ACCESS_KEY: '******************'
+    TRANSCRIPT_CALLBACK_URL: '******************'
 
 functions:
-  hook:
-    handler: handler.hook
+  voicebasehook:
+    handler: handler.voicebasehook
     events:
      - http:
           path: voicebase
@@ -23,4 +23,13 @@ functions:
      - s3:
           bucket: voxrec-voicebase-proof-of-concept
           event: s3:ObjectCreated:*
-
+          rules:
+            - suffix: .wav
+  googlespeech:
+    handler: handler.googlespeech
+    events:
+     - s3:
+          bucket: voxrec-voicebase-proof-of-concept
+          event: s3:ObjectCreated:*
+          rules:
+            - suffix: .flac
