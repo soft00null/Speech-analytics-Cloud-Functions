@@ -9,7 +9,8 @@ module.exports.voicebasehook = (event, context, callback) => {
 
   console.log(event.body);
 
-  createTranscriptionLog(event.body, s3, mediaId, 'voicebase');
+  var content = JSON.parse(event.body).media.transcripts.text;
+  createTranscriptionLog(content, s3, mediaId, 'voicebase');
 
   var getFileOptions = {
     url: 'https://apis.voicebase.com/v2-beta/media/' + mediaId + "/streams",
