@@ -20,7 +20,7 @@ module.exports.voicebasehook = (event, context, callback) => {
     }
   };
 
-  function callback(error, response, body) {
+  function getFileCallback(error, response, body) {
     var REDACTED_FILE = JSON.parse(body).streams.original;
     request({
       uri: REDACTED_FILE,
@@ -45,7 +45,13 @@ module.exports.voicebasehook = (event, context, callback) => {
     });
   }
 
-  request(getFileOptions, callback);
+  request(getFileOptions, getFileCallback);
+
+  const response = {
+    statusCode: 200
+  };
+
+  callback(null, response);
 };
 
 module.exports.voicebase = (event, context, callback) => {
