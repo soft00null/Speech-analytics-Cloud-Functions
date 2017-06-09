@@ -43,7 +43,7 @@ function uploadToGoogleSpeech(event, settings, finishedCallback) {
 
   const options = {
     method: 'POST',
-    url: 'https://speech.googleapis.com/v1/speech:longrunningrecognize?key=AIzaSyAKqTZcnGwZtdZcKCaAPSn_lseunaWUw5U',
+    url: 'https://speech.googleapis.com/v1/speech:longrunningrecognize?key=',
     json: {
       "config": {
         "encoding": "FLAC",
@@ -77,7 +77,7 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
     url: 'https://apis.voicebase.com/v2-beta/media',
     method: 'POST',
     headers: {
-      'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI3NmY5ZTZmMy02MmQyLTQ2OGQtOTczOS04MTc3MjMzMTI3MWIiLCJ1c2VySWQiOiJhdXRoMHw1OGU1NDk5MTZiZGYxMTZhOGM3NTM5MTIiLCJvcmdhbml6YXRpb25JZCI6IjkzODQ5ODQ1LTc0M2ItM2QzZS02NDllLTgwYmQxYWU0MDk2MyIsImVwaGVtZXJhbCI6ZmFsc2UsImlhdCI6MTQ5MTUxMDk0ODg3OCwiaXNzIjoiaHR0cDovL3d3dy52b2ljZWJhc2UuY29tIn0.r3tAS2X2D2hSSFFcPvmY6CHpbH1EVqkCWqD_DgrcK30'
+      'Authorization': 'Bearer'
     }
   };
 
