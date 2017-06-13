@@ -9,33 +9,46 @@ var request = require('request');
 
 //********************functions********************************
 
-function getAnalyticSettings(profileId, callback) {
+function fetchAnalyticSettings(profileId, callback) {
   const options = {
     method: 'GET',
-    url: 'https://analytics.voxrec.me/account/analyticSettings?profileId=' + profileId,
+    url: 'https://voxbone.ai/account/analyticSettings?profileId=' + profileId,
+    headers: {
+      "voxbone-ai-app-key": ''
+    }
   };
 
   request(options, function(error, response, body) {
-    if (!error)
-      callback(null, JSON.parse(body));
-    else
+
+    if (!error) {
+      try {
+        callback(null, JSON.parse(body));
+      } catch(e) {
+        callback(e, null);
+      }
+    } else {
       callback(error, body);
+    }
+
    });
 }
 
-function sendMediaIdToVoxrec(data, voxrecCallback) {
+function createTranscriptEntry(data, finishedCallback) {
 
   const options = {
     method: 'POST',
-    url: 'https://analytics.voxrec.me/analytics/transcripts',
-    json: data
+    url: 'https://voxbone.ai/analytics/transcripts',
+    json: data,
+    headers: {
+      "voxbone-ai-app-key": ''
+    }
   };
 
   request(options, function(error, response, body) {
     if (!error)
-      voxrecCallback(null, body);
+      finishedCallback(null, body);
     else
-      voxrecCallback(error, body);
+      finishedCallback(error, body);
    });
 }
 
@@ -59,13 +72,19 @@ function uploadToGoogleSpeech(event, settings, finishedCallback) {
 
     let data = {
       "service": 'googleSpeech',
-      "mediaId": body.name,
       "participantId": event.data.metadata['participant-id'],
       "profileId": event.data.metadata['profile-id'],
       "callId": event.data.metadata['call-id']
     };
 
-    sendMediaIdToVoxrec(data, function() {
+    if (!error && !body.error) {
+      data.mediaId = body.name;
+    } else {
+      console.log('Google speech api error: ' + error);
+      data.failureReason = error || body.error.message;
+    }
+
+    createTranscriptEntry(data, function() {
       finishedCallback();
     });
   });
@@ -77,7 +96,7 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
     url: 'https://apis.voicebase.com/v2-beta/media',
     method: 'POST',
     headers: {
-      'Authorization': 'Bearer'
+      'Authorization': 'Bearer '
     }
   };
 
@@ -151,21 +170,30 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
 
 
   function voiceBaseCallback(error, response, body) {
+
     let data = {
       "service": 'voiceBase',
-      "mediaId": JSON.parse(body).mediaId,
       "participantId": event.data.metadata['participant-id'],
       "profileId": event.data.metadata['profile-id'],
       "callId": event.data.metadata['call-id'],
       "redaction": !!configuration.configuration.detections
     };
 
-    sendMediaIdToVoxrec(data, function() {
+    if (!error && !JSON.parse(body).errors) {
+      try {
+        data.mediaId = JSON.parse(body).mediaId;
+      } catch (e) {
+        data.failureReason = e;
+      }
+    } else {
+      data.failureReason = JSON.parse(body).errors.error || error;
+    }
+
+    createTranscriptEntry(data, function() {
       finishedCallback();
     });
   }
 }
-
 
 //*********************************************************
 
@@ -173,16 +201,15 @@ exports.processFile = function(event, callback) {
   console.log('Processing file: ' + event.data.name);
   console.log(event);
 
-
   if (event.data.resourceState === 'exists'
       && event.data.metageneration === '2'
       && event.data.metadata['participant-id'] !== 'none'
       && event.data.metadata['profile-id']
       && event.data.metadata['call-id']) {
 
+    fetchAnalyticSettings(event.data.metadata['profile-id'], function(error, settings) {
 
-    getAnalyticSettings(event.data.metadata['profile-id'], function(error, settings) {
-
+      if (!error && settings) {
         switch (settings.service) {
           case 'googleSpeech':
             uploadToGoogleSpeech(event, settings, function() {
@@ -197,7 +224,12 @@ exports.processFile = function(event, callback) {
           default:
             callback();
         }
-      });
+      } else {
+        console.log('No analytic settings found for ' + event.data.metadata['profile-id']);
+        callback();
+      }
+
+    });
 
   } else {
     callback();
