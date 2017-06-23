@@ -6,6 +6,7 @@
  */
 
 var request = require('request');
+var SpeechToTextV1 = require('watson-developer-cloud/speech-to-text/v1');
 
 //********************functions********************************
 
@@ -19,11 +20,12 @@ function fetchAnalyticSettings(profileId, callback) {
   };
 
   request(options, function(error, response, body) {
-
+  console.log(error);
     if (!error) {
       try {
         callback(null, JSON.parse(body));
       } catch(e) {
+        console.log("catch" + e);
         callback(e, null);
       }
     } else {
@@ -50,6 +52,43 @@ function createTranscriptEntry(data, finishedCallback) {
     else
       finishedCallback(error, body);
    });
+}
+
+function uploadToIbmWatson(event, settings, finishedCallback) {
+  var speech_to_text = new SpeechToTextV1({
+    username: '',
+    password: ''
+  });
+
+  var params = {
+    audio: request(event.data.mediaLink),
+    content_type: 'audio/flac',
+    max_alternatives: 1,
+    model: settings.ibmWatson.model,
+    profanity_filter: settings.ibmWatson.profanityFilter,
+    smart_formatting: settings.ibmWatson.smartFormatting
+  };
+
+  speech_to_text.createRecognitionJob(params, function(err, res) {
+
+    let data = {
+      "service": 'ibmWatson',
+      "participantId": event.data.metadata['participant-id'],
+      "profileId": event.data.metadata['profile-id'],
+      "callId": event.data.metadata['call-id']
+    };
+
+    if (!err && res) {
+      data.mediaId = res.id;
+    } else {
+      console.log('IBM speech api error: ' + err);
+      data.failureReason = err;
+    }
+
+    createTranscriptEntry(data, function() {
+      finishedCallback();
+    });
+  });
 }
 
 function uploadToGoogleSpeech(event, settings, finishedCallback) {
@@ -96,7 +135,7 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
     url: 'https://apis.voicebase.com/v2-beta/media',
     method: 'POST',
     headers: {
-      'Authorization': 'Bearer '
+      'Authorization': 'Bearer'
     }
   };
 
@@ -218,6 +257,11 @@ exports.processFile = function(event, callback) {
             break;
           case 'voiceBase':
             uploadToVoiceBase(event, settings, function() {
+              callback();
+            });
+            break;
+          case 'ibmWatson':
+            uploadToIbmWatson(event, settings, function() {
               callback();
             });
             break;
