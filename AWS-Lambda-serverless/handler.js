@@ -166,8 +166,8 @@ module.exports.googlespeech = (event, context, callback) => {
   const RESOURCE_URL = 'https://s3.amazonaws.com/' + event.Records[0].s3.bucket.name + '/' + event.Records[0].s3.object.key;
 
   var speechClient = speech({
-    projectId: 'voxbone-workshop',
-    keyFilename: 'Workshop-c5795abec2f2.json'
+    projectId: '',
+    keyFilename: ''
   });
 
   const options = {
