@@ -1,9 +1,8 @@
-# voicebase-poc
-Proof of concept - Integration between voxrec and voicebase
+# AWS-Lambda-serverless
 
-Serverless project for aws lambda nodejs
+Serverless project for AWS Lambda functions in NodeJs
 
-Fires a request to voicebase api when a new object is created in the defined bucket (You can change it in serverless.yml). This bucket is named 'voxrec-voicebase-proof-of-concept' by default. If it doesn't exist, this APP will create it automatically for you.
+Fires a request to Voicebase or Google Speech APIS when a new object is created in the defined bucket (You can change it in serverless.yml). This bucket is named 'voxrec-voicebase-proof-of-concept' by default. If it doesn't exist, this APP will create it automatically for you.
 Voicebase will reply back to 'HOOK_URL' with the transcription of the file when processing is ready. In that moment, a POST request will be made to 'TRANSCRIPT_CALLBACK_URL' where you will get the transcription.
 After that, a new request to voicebase API is made, requesting the reducted file URL(a reducted file is the original file with a sinus tone replacing sensitive information). This service will get the file and upload it to 'voxrec-voicebase-poc-redacted' bucket.
 
