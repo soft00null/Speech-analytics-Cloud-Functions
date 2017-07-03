@@ -1,11 +1,13 @@
-# Speech analytics Poc
-Repo for Cloud functions used in Speech analytics PoC's
+# Speech analytics Cloud Functions
+This repository holds different cloud functions to be used in conjunction with voxrec environment for handling speech analytics.
+This functions are tied to a specific object creation trigger in a specific bucket, which should be setup by the user at the moment at deploying them.
+There are two options available. You can integrate this feature with your Google Cloud or AWS environment so far. More to come in the future.
 
 ### AWS-Lambda-serverless
-Serverless Lambda function for AWS which invokes voicebase and google speech apis. This is not in use at this moment
+Serverless Lambda function for AWS which includes voicebase and google speech apis.
 
 ### Google-functions-analytics-voxrec
-Google Cloud function used by analytics.voxrec.me to handle speech processing
+Google Cloud function to handle speech analytics. Includes Voicebase, Google Speech and IBM Watson
 
 ### Google-functions-Voicebase-booth
-Google Cloud function used for voicebase demo, integration between their demo site and voxbone dids tied to voxrec
+Google Cloud function used for voicebase demo, integration between their demo site and voxbone dids tied to voxrec.
