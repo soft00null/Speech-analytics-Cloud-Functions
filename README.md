@@ -7,7 +7,7 @@ There are two options available. You can integrate this feature with your Google
 Serverless Lambda function for AWS which includes voicebase and google speech apis.
 
 ### Google-functions-analytics-voxrec
-Google Cloud function to handle speech analytics. Includes Voicebase, Google Speech and IBM Watson
+Google Cloud function to handle speech analytics. Includes Voicebase, Google Speech and IBM Watson. This is currently in use by Voxbone.ai but it can be easily adapted to any other new environment.
 
 ### Google-functions-Voicebase-booth
-Google Cloud function used for voicebase demo, integration between their demo site and voxbone dids tied to voxrec.
+Google Cloud function used for voicebase demo. Provides integration between their demo site and Voxbone dids.
