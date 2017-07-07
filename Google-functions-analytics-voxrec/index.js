@@ -66,7 +66,8 @@ function uploadToIbmWatson(event, settings, finishedCallback) {
     max_alternatives: 1,
     model: settings.ibmWatson.model,
     profanity_filter: settings.ibmWatson.profanityFilter,
-    smart_formatting: settings.ibmWatson.smartFormatting
+    smart_formatting: settings.ibmWatson.smartFormatting,
+    inactivity_timeout: 60
   };
 
   speech_to_text.createRecognitionJob(params, function(err, res) {
