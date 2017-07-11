@@ -14,14 +14,16 @@ First of all you'll need to create a bucket into Google Cloud Storage. Named fun
 
 2 - On the top bar click on 'Create function'
 
-3 - *Name it whatever you want
+3 - Fill the settings:
 
-    *Allocate memory. 128Mb should be enough
+    Name it whatever you want
 
-    *Trigger: select 'Cloud Storage Bucket' and select your desired bucket from the dropdown. This bucket should be the same bucket where your recordings end up after they finish. Set this bucket into voxrec.
+    Allocate memory. 128Mb should be enough
 
-    *We will just use the inline editor: All you need to do is copy and paste the content of this two files (index.js and package.json) into each respective tab. Make sure to have filled index.js with your analytics partners credentials!
+    Trigger: select 'Cloud Storage Bucket' and select your desired bucket from the dropdown. This bucket should be the same bucket where your recordings end up after they finish. Set this bucket into voxrec.
 
-    *Stage bucket: select the deployment bucket we set up at the begining of this tutorial.
+    We will just use the inline editor: All you need to do is copy and paste the content of this two files (index.js and package.json) into each respective tab. Make sure to have filled index.js with your analytics partners credentials!
 
-    *Function to execute: processFile
+    Stage bucket: select the deployment bucket we set up at the begining of this tutorial.
+
+    Function to execute: processFile
