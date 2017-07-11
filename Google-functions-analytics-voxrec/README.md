@@ -8,7 +8,7 @@ Every speech analytics API answers back with a confirmation if the POST was succ
 # Simple Deployment Tutorial
 
 To integrate this function to your Google Cloud environment follow this simple steps:
-First of all you'll need to create a bucket into Google Cloud Storage. Named functions-deployment-bucket (or something similar). This bucket will contain the deployed function.
+First of all you'll need to create a bucket into Google Cloud Storage. Named functions-deployment-bucket (or something similar). This bucket will contain the deployed function. This bucket is completely independent from the bucket where your recordings will be stored.
 
 1 - Click on Google Cloud Functions for your account. Probably you'll need to enable them previously.
 
