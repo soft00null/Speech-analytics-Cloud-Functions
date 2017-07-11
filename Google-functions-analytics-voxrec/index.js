@@ -94,18 +94,25 @@ function uploadToIbmWatson(event, settings, finishedCallback) {
 
 function uploadToGoogleSpeech(event, settings, finishedCallback) {
 
+  const configuration = {
+    "config": {
+      "encoding": "FLAC",
+      "language_code": settings.googleSpeech.language
+    },
+    "audio":{
+      "uri":"gs://" + event.data.bucket + "/" + event.data.name
+    }
+  };
+
+  if (settings.googleSpeech.speechContexts && settings.googleSpeech.speechContextsEnabled)
+    configuration.config.speechContexts = {
+      "phrases": settings.googleSpeech.speechContexts.split(',')
+    };
+
   const options = {
     method: 'POST',
     url: 'https://speech.googleapis.com/v1/speech:longrunningrecognize?key=',
-    json: {
-      "config": {
-        "encoding": "FLAC",
-        "language_code": settings.googleSpeech.language
-      },
-      "audio":{
-        "uri":"gs://" + event.data.bucket + "/" + event.data.name
-      }
-    }
+    json: configuration
   };
 
   request(options, function(error, response, body) {
