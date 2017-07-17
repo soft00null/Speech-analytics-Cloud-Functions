@@ -1,6 +1,9 @@
 {
   "name": "speech-analytics-trigger",
   "version": "0.0.1",
+  "engines": {
+    "node": "^6.11.1"
+  },
   "dependencies": {
     "request": "latest",
     "watson-developer-cloud": "^2.32.1"
