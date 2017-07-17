@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Proof of concept - Integration between voxrec and voicebase",
   "main": "handler.js",
+  "engines": {
+    "node": "^6.11.1"
+  },
   "dependencies": {
     "request": "^2.81.0",
     "aws-sdk": "latest",
