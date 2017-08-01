@@ -242,11 +242,36 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
   }
 }
 
+function uploadToService(service, settings, event) {
+
+  console.log("Upload to Service:" + service);
+  switch (service) {
+    case 'googleSpeech':
+      uploadToGoogleSpeech(event, settings, function() {
+        return Promise.resolve("Done");
+      });
+      break;
+    case 'voiceBase':
+      uploadToVoiceBase(event, settings, function() {
+        return Promise.resolve("Done");
+      });
+      break;
+    case 'ibmWatson':
+      uploadToIbmWatson(event, settings, function() {
+        return Promise.resolve("Done");
+      });
+      break;
+  }
+
+}
+
 //*********************************************************
 
 exports.processFile = function(event, callback) {
   console.log('Processing file: ' + event.data.name);
   console.log(event);
+
+  var promises = [];
 
   if (event.data.resourceState === 'exists'
       && event.data.metageneration === '2'
@@ -257,25 +282,16 @@ exports.processFile = function(event, callback) {
     fetchAnalyticSettings(event.data.metadata['profile-id'], function(error, settings) {
 
       if (!error && settings) {
-        switch (settings.service) {
-          case 'googleSpeech':
-            uploadToGoogleSpeech(event, settings, function() {
-              callback();
-            });
-            break;
-          case 'voiceBase':
-            uploadToVoiceBase(event, settings, function() {
-              callback();
-            });
-            break;
-          case 'ibmWatson':
-            uploadToIbmWatson(event, settings, function() {
-              callback();
-            });
-            break;
-          default:
-            callback();
-        }
+        settings.services.forEach((service) => {
+          promises.push(uploadToService(service, settings, event));
+        });
+
+        Promise.all(promises).then(() => {
+          callback();
+        }).catch((e) => {
+          callback();
+        })
+
       } else {
         console.log('No analytic settings found for ' + event.data.metadata['profile-id']);
         callback();
