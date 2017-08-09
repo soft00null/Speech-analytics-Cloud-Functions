@@ -243,26 +243,26 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
 }
 
 function uploadToService(service, settings, event) {
-
   console.log("Upload to Service:" + service);
-  switch (service) {
-    case 'googleSpeech':
-      uploadToGoogleSpeech(event, settings, function() {
-        return Promise.resolve("Done");
-      });
-      break;
-    case 'voiceBase':
-      uploadToVoiceBase(event, settings, function() {
-        return Promise.resolve("Done");
-      });
-      break;
-    case 'ibmWatson':
-      uploadToIbmWatson(event, settings, function() {
-        return Promise.resolve("Done");
-      });
-      break;
-  }
-
+  return new Promise((resolve, reject) => {
+    switch (service) {
+      case 'googleSpeech':
+        uploadToGoogleSpeech(event, settings, function() {
+          resolve("Done");
+        });
+        break;
+      case 'voiceBase':
+        uploadToVoiceBase(event, settings, function() {
+          resolve("Done");
+        });
+        break;
+      case 'ibmWatson':
+        uploadToIbmWatson(event, settings, function() {
+          resolve("Done");
+        });
+        break;
+    }
+  });
 }
 
 //*********************************************************
