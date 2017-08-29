@@ -8,14 +8,21 @@
 var request = require('request');
 var SpeechToTextV1 = require('watson-developer-cloud/speech-to-text/v1');
 
+const SITE_BASE_URL = '';
+const VOXBONE_AI_APP_KEY = '';
+const VOICEBASE_BEARER_TOKEN = '';
+const WATSON_USERNAME = '';
+const WATSON_PASSWORD = '';
+const GOOGLE_SPEECH_KEY = '';
+
 //********************functions********************************
 
 function fetchAnalyticSettings(profileId, callback) {
   const options = {
     method: 'GET',
-    url: 'https://voxbone.ai/account/analyticSettings?profileId=' + profileId,
+    url: SITE_BASE_URL + '/account/analyticSettings?profileId=' + profileId,
     headers: {
-      "voxbone-ai-app-key": ''
+      "voxbone-ai-app-key": VOXBONE_AI_APP_KEY
     }
   };
 
@@ -39,10 +46,10 @@ function createTranscriptEntry(data, finishedCallback) {
 
   const options = {
     method: 'POST',
-    url: 'https://voxbone.ai/analytics/transcripts',
+    url: SITE_BASE_URL + '/analytics/transcripts',
     json: data,
     headers: {
-      "voxbone-ai-app-key": ''
+      "voxbone-ai-app-key": VOXBONE_AI_APP_KEY
     }
   };
 
@@ -56,8 +63,8 @@ function createTranscriptEntry(data, finishedCallback) {
 
 function uploadToIbmWatson(event, settings, finishedCallback) {
   var speech_to_text = new SpeechToTextV1({
-    username: '',
-    password: ''
+    username: WATSON_USERNAME,
+    password: WATSON_PASSWORD
   });
 
   var params = {
@@ -111,7 +118,7 @@ function uploadToGoogleSpeech(event, settings, finishedCallback) {
 
   const options = {
     method: 'POST',
-    url: 'https://speech.googleapis.com/v1/speech:longrunningrecognize?key=',
+    url: 'https://speech.googleapis.com/v1/speech:longrunningrecognize?key=' + GOOGLE_SPEECH_KEY,
     json: configuration
   };
 
@@ -143,7 +150,7 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
     url: 'https://apis.voicebase.com/v2-beta/media',
     method: 'POST',
     headers: {
-      'Authorization': 'Bearer'
+      'Authorization': 'Bearer ' + VOICEBASE_BEARER_TOKEN
     }
   };
 
@@ -242,11 +249,36 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
   }
 }
 
+function uploadToService(service, settings, event) {
+  console.log("Upload to Service:" + service);
+  return new Promise((resolve, reject) => {
+    switch (service) {
+      case 'googleSpeech':
+        uploadToGoogleSpeech(event, settings, function() {
+          resolve("Done");
+        });
+        break;
+      case 'voiceBase':
+        uploadToVoiceBase(event, settings, function() {
+          resolve("Done");
+        });
+        break;
+      case 'ibmWatson':
+        uploadToIbmWatson(event, settings, function() {
+          resolve("Done");
+        });
+        break;
+    }
+  });
+}
+
 //*********************************************************
 
 exports.processFile = function(event, callback) {
   console.log('Processing file: ' + event.data.name);
   console.log(event);
+
+  var promises = [];
 
   if (event.data.resourceState === 'exists'
       && event.data.metageneration === '2'
@@ -257,25 +289,16 @@ exports.processFile = function(event, callback) {
     fetchAnalyticSettings(event.data.metadata['profile-id'], function(error, settings) {
 
       if (!error && settings) {
-        switch (settings.service) {
-          case 'googleSpeech':
-            uploadToGoogleSpeech(event, settings, function() {
-              callback();
-            });
-            break;
-          case 'voiceBase':
-            uploadToVoiceBase(event, settings, function() {
-              callback();
-            });
-            break;
-          case 'ibmWatson':
-            uploadToIbmWatson(event, settings, function() {
-              callback();
-            });
-            break;
-          default:
-            callback();
-        }
+        settings.services.forEach((service) => {
+          promises.push(uploadToService(service, settings, event));
+        });
+
+        Promise.all(promises).then(() => {
+          callback();
+        }).catch((e) => {
+          callback();
+        })
+
       } else {
         console.log('No analytic settings found for ' + event.data.metadata['profile-id']);
         callback();
