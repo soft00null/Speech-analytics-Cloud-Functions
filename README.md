@@ -4,10 +4,13 @@ This functions are tied to a specific object creation trigger in a specific buck
 There are two options available: you can integrate this feature with your Google Cloud or AWS environment so far. More to come in the future.
 
 ### AWS-Lambda-serverless
-Serverless Lambda function for AWS which includes voicebase and google speech apis.
+Serverless Lambda function for AWS which includes voicebase and google speech apis. This function is a standalone serverless application which stores the transcriptions as text files in the chosen bucket.
 
 ### Google-functions-analytics-voxrec
 Google Cloud function to handle speech analytics. Includes Voicebase, Google Speech and IBM Watson. This is currently in use by Voxbone.ai but it can be easily adapted to any other new environment.
+
+### Amazon-functions-analytics-voxrec
+Lambda function to handle speech analytics integration for customers. Includes Voicebase.
 
 ### Google-functions-Voicebase-booth
 Google Cloud function used for voicebase demo booth. Provides integration between their demo site and Voxbone dids.
