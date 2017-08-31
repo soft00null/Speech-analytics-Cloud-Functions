@@ -161,8 +161,6 @@ module.exports.processFile = (event, context, callback) => {
   };
 
   request(options, function(error, response, body) {
-    console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
-
     const metadata = {
       'participant-id' : response.headers['x-amz-meta-participant-id'],
       'profile-id' : response.headers['x-amz-meta-profile-id'],
@@ -199,6 +197,7 @@ module.exports.processFile = (event, context, callback) => {
           callback();
         });
       } else {
+        console.log("Metadata missing!");
         callback();
       }
     }
