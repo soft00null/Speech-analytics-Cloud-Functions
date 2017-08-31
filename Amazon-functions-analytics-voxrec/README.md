@@ -28,3 +28,5 @@ First of all you'll need to create a bucket into AWS where we will store the rec
     Advanced settings: set the timeout to 1 minute and increase the memory assigned if desired. 256MB is enough.
     Click on "Next" and finally "Create function"
 
+6 - Once you make a call and you get the information in your hook url. You can use the "mediaId" provided to make an API call to Voicebase and get the transcription.
+Make a GET to "https://apis.voicebase.com/v2-beta/media/{mediaId}" add the header "Authorization" : "Bearer {voicebaseBearerToken}" to authenticate the request.
