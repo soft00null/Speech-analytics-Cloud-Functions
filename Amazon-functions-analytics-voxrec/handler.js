@@ -1,9 +1,6 @@
 'use strict';
 
 const request = require('request');
-
-const SITE_BASE_URL = process.env.SITE_BASE_URL;
-const APP_KEY = process.env.APP_KEY;
 const VOICEBASE_BEARER_TOKEN = process.env.VOICEBASE_BEARER_TOKEN;
 
 //********************functions********************************
@@ -12,11 +9,10 @@ function createTranscriptEntry(data, finishedCallback) {
 
   const options = {
     method: 'POST',
-    // url: SITE_BASE_URL + '/analytics/transcripts',
-    url: 'http://mockbin.org/bin/c9e24b52-0203-4c36-8a44-07027e771ad8',
+    url: process.env.HOOK_URL,
     json: data,
     // headers: {
-    //   "x-app-key": APP_KEY
+    //   "x-app-key": process.env.APP_KEY
     // }
   };
 

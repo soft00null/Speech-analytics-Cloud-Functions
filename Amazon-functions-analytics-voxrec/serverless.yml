@@ -11,7 +11,7 @@ provider:
 
 custom:
   BUCKET: '****'
-  SITE_BASE_URL: '****'
+  HOOK_URL: '****'
   APP_KEY: '****'
   VOICEBASE_BEARER_TOKEN: '****'
 
@@ -20,7 +20,7 @@ functions:
       handler: handler.processFile
       environment:
         BUCKET: ${self:custom.BUCKET}
-        SITE_BASE_URL: ${self:custom.SITE_BASE_URL}
+        HOOK_URL: ${self:custom.HOOK_URL}
         APP_KEY: ${self:custom.APP_KEY}
         VOICEBASE_BEARER_TOKEN: ${self:custom.VOICEBASE_BEARER_TOKEN}
       events:

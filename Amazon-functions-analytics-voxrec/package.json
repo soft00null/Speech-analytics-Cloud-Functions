@@ -1,0 +1,20 @@
+{
+  "name": "aws-speech-voxrec-function",
+  "version": "0.0.1",
+  "main": "handler.js",
+  "engines": {
+    "node": "^6.11.2"
+  },
+  "author": "me",
+  "license": "MIT",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/voxbone-workshop"
+  },
+  "keywords": [],
+  "devDependencies": {},
+  "dependencies": {
+    "request": "latest"
+  }
+}
