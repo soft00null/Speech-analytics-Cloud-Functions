@@ -96,7 +96,7 @@ function uploadToVoiceBase(event, settings, metadata, finishedCallback) {
     configuration.configuration.transcripts = vocabularies;
   }
 
-  const mediaLink = 'https://s3.amazonaws.com/' + event.Records[0].s3.bucket.name + '/' + event.Records[0].s3.object.key;
+  const mediaLink = process.env.S3_BUCKET_BASE_URL + event.Records[0].s3.bucket.name + '/' + event.Records[0].s3.object.key;
   var vbRequest = request(options, voiceBaseCallback);
   var form = vbRequest.form();
   form.append('media', mediaLink);
@@ -156,25 +156,23 @@ module.exports.processFile = (event, context, callback) => {
   var promises = [];
 
   var options = {
-    url: 'https://s3.amazonaws.com/' + bucket + '/' + fileName,
+    url: process.env.S3_BUCKET_BASE_URL + bucket + '/' + fileName,
     method: 'HEAD',
   };
 
   request(options, function(error, response, body) {
-    const metadata = {
-      'participant-id' : response.headers['x-amz-meta-participant-id'],
-      'profile-id' : response.headers['x-amz-meta-profile-id'],
-      'call-id' : response.headers['x-amz-meta-call-id']
-    };
 
-    if (error) {
+    if (error || !response) {
       console.log("Error reading object metadata " + fileName + " from bucket " + bucket + ".");
       context.fail("Error: " + error);
     } else {
-      if (metadata['participant-id'] !== 'none'
-        && metadata['profile-id']
-        && metadata['call-id']) {
+      const metadata = {
+        'participant-id' : response.headers['x-amz-meta-participant-id'],
+        'profile-id' : response.headers['x-amz-meta-profile-id'],
+        'call-id' : response.headers['x-amz-meta-call-id']
+      };
 
+      if (metadata['participant-id'] !== 'none' && metadata['profile-id'] && metadata['call-id']) {
         const settings = {
           "services": ["voiceBase"],
           "voiceBase" : {
@@ -197,7 +195,12 @@ module.exports.processFile = (event, context, callback) => {
           callback();
         });
       } else {
-        console.log("Metadata missing!");
+
+        if (metadata['participant-id'] === 'none')
+          console.log("This file won't be processed, since it's the stereo mix file both participants");
+        else
+          console.log("Metadata missing!");
+
         callback();
       }
     }
