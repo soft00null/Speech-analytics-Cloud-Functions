@@ -7,6 +7,8 @@ Every speech analytics API answers back with a confirmation if the POST was succ
 
 # Simple Deployment Tutorial
 
+**Warning** : In your Google Cloud Storage bucket, make sure you added allUsers with `Storage Object Viewer` role, so that your analytics provider can access the recorded files. This setting is under Google Cloud Storage Browser>Your Bucket>Settings. You can also follow [this tutorial](https://cloud.google.com/storage/docs/access-control/making-data-public) for configuration.
+
 To integrate this function to your Google Cloud environment follow this simple steps:
 First of all you'll need to create a bucket into Google Cloud Storage. Named functions-deployment-bucket (or something similar). This bucket will contain the deployed function. This bucket is completely independent from the bucket where your recordings will be stored.
 
