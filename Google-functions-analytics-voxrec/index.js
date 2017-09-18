@@ -199,7 +199,7 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
     });
   }
 
-  if (settings.voiceBase.numberRedaction || settings.voiceBase.ssnRedaction || settings.voiceBase.pciRedaction ||)
+  if (settings.voiceBase.numberRedaction || settings.voiceBase.ssnRedaction || settings.voiceBase.pciRedaction)
     configuration.configuration.detections = redaction;
 
   if (settings.voiceBase.language === 'es-LA' || settings.voiceBase.language === 'pt-BR') {
@@ -223,7 +223,7 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
     }
     configuration.configuration.keywords = keywordsGroups;
   }
-  
+
   var vbRequest = request(options, voiceBaseCallback);
   var form = vbRequest.form();
   form.append('media', event.data.mediaLink);
