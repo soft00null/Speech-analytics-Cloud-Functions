@@ -70,6 +70,7 @@ function uploadToIbmWatson(event, settings, finishedCallback) {
   var params = {
     audio: request(event.data.mediaLink),
     content_type: 'audio/flac',
+    timestamps: true,
     max_alternatives: 1,
     model: settings.ibmWatson.model,
     profanity_filter: settings.ibmWatson.profanityFilter,
@@ -104,7 +105,8 @@ function uploadToGoogleSpeech(event, settings, finishedCallback) {
   const configuration = {
     "config": {
       "encoding": "FLAC",
-      "language_code": settings.googleSpeech.language
+      "language_code": settings.googleSpeech.language,
+      "enableWordTimeOffsets": true
     },
     "audio":{
       "uri":"gs://" + event.data.bucket + "/" + event.data.name
