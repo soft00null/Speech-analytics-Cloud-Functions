@@ -204,7 +204,7 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
   if (settings.voiceBase.numberRedaction || settings.voiceBase.ssnRedaction || settings.voiceBase.pciRedaction)
     configuration.configuration.detections = redaction;
 
-  if (settings.voiceBase.language === 'es-LA' || settings.voiceBase.language === 'pt-BR') {
+  if (settings.voiceBase.language === 'es-LA' || settings.voiceBase.language === 'pt-BR' || settings.voiceBase.language === 'es-ES') {
     configuration.configuration.language = settings.voiceBase.language;
     configuration.configuration.keywords = {"semantic": false};
     configuration.configuration.topics = {"semantic": false};
@@ -219,7 +219,7 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
     configuration.configuration.transcripts = vocabularies;
   }
 
-  if (settings.voiceBase.keywordSpottingEnabled) {
+  if (settings.voiceBase.keywordSpottingEnabled && settings.voiceBase.language !== 'es-LA' && settings.voiceBase.language !== 'pt-BR' && settings.voiceBase.language !== 'es-ES') {
     let keywordsGroups = {
         "groups": [event.data.metadata['profile-id']]
     }
