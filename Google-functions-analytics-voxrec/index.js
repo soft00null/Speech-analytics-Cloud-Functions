@@ -290,7 +290,10 @@ exports.processFile = function(event, callback) {
   var promises = [];
 
   if (event.data.resourceState === 'exists'
+      // If using ASTRec as the recorder
       && event.data.metageneration === '2'
+      // If using RTPRec as the recorder
+      // && event.data.metageneration === '1'
       && event.data.metadata['participant-id'] !== 'none'
       && event.data.metadata['profile-id']
       && event.data.metadata['call-id']) {
@@ -316,6 +319,7 @@ exports.processFile = function(event, callback) {
     });
 
   } else {
+    console.log(`Metadata error for ${event.data.name}`)
     callback();
   }
 
