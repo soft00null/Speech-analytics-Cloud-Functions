@@ -15,6 +15,8 @@ const WATSON_USERNAME = '';
 const WATSON_PASSWORD = '';
 const GOOGLE_SPEECH_KEY = '';
 
+
+
 //********************functions********************************
 
 function fetchAnalyticSettings(profileId, callback) {
@@ -201,11 +203,12 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
     });
   }
 
+  configuration.configuration.language = settings.voiceBase.language;
+
   if (settings.voiceBase.numberRedaction || settings.voiceBase.ssnRedaction || settings.voiceBase.pciRedaction)
     configuration.configuration.detections = redaction;
 
-  if (settings.voiceBase.language === 'es-LA' || settings.voiceBase.language === 'pt-BR' || settings.voiceBase.language === 'es-ES') {
-    configuration.configuration.language = settings.voiceBase.language;
+  if (settings.voiceBase.language === 'fr-FR' || settings.voiceBase.language === 'de-DE' || settings.voiceBase.language === 'es-LA' || settings.voiceBase.language === 'pt-BR' || settings.voiceBase.language === 'es-ES') {
     configuration.configuration.keywords = {"semantic": false};
     configuration.configuration.topics = {"semantic": false};
   }
@@ -219,13 +222,14 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
     configuration.configuration.transcripts = vocabularies;
   }
 
-  if (settings.voiceBase.keywordSpottingEnabled && settings.voiceBase.language !== 'es-LA' && settings.voiceBase.language !== 'pt-BR' && settings.voiceBase.language !== 'es-ES') {
+  if (settings.voiceBase.keywordSpottingEnabled && settings.voiceBase.language !== 'fr-FR' && settings.voiceBase.language !== 'es-LA' && settings.voiceBase.language !== 'pt-BR' && settings.voiceBase.language !== 'es-ES') {
     let keywordsGroups = {
         "groups": [event.data.metadata['profile-id']]
     }
     configuration.configuration.keywords = keywordsGroups;
   }
 
+  console.log(JSON.stringify(configuration));
   var vbRequest = request(options, voiceBaseCallback);
   var form = vbRequest.form();
   form.append('media', event.data.mediaLink);
@@ -290,10 +294,7 @@ exports.processFile = function(event, callback) {
   var promises = [];
 
   if (event.data.resourceState === 'exists'
-      // If using ASTRec as the recorder
       && event.data.metageneration === '2'
-      // If using RTPRec as the recorder
-      // && event.data.metageneration === '1'
       && event.data.metadata['participant-id'] !== 'none'
       && event.data.metadata['profile-id']
       && event.data.metadata['call-id']) {
@@ -319,7 +320,6 @@ exports.processFile = function(event, callback) {
     });
 
   } else {
-    console.log(`Metadata error for ${event.data.name}`)
     callback();
   }
 
