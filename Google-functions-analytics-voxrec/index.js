@@ -257,12 +257,12 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
     configuration.configuration.transcripts = vocabularies;
   }
 
-  if (settings.voiceBase.keywordSpottingEnabled && settings.voiceBase.language !== 'fr-FR' && settings.voiceBase.language !== 'es-LA' && settings.voiceBase.language !== 'pt-BR' && settings.voiceBase.language !== 'es-ES') {
+  /*if (settings.voiceBase.keywordSpottingEnabled && settings.voiceBase.language !== 'fr-FR' && settings.voiceBase.language !== 'de-DE' && settings.voiceBase.language !== 'es-LA' && settings.voiceBase.language !== 'pt-BR' && settings.voiceBase.language !== 'es-ES') {
     let keywordsGroups = {
         "groups": [event.data.metadata['profile-id']]
     }
     configuration.configuration.keywords = keywordsGroups;
-  }
+  }*/
 
   var vbRequest = request(options, voiceBaseCallback);
   var form = vbRequest.form();
