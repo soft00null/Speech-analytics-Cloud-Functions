@@ -8,12 +8,15 @@
 var request = require('request');
 var SpeechToTextV1 = require('watson-developer-cloud/speech-to-text/v1');
 
+const ANALYTICS_SERVICE_URL = '';
 const SITE_BASE_URL = '';
+const ANALYTICS_SERVICE_KEY = '';
 const VOXBONE_AI_APP_KEY = '';
 const VOICEBASE_BEARER_TOKEN = '';
 const WATSON_USERNAME = '';
 const WATSON_PASSWORD = '';
 const GOOGLE_SPEECH_KEY = '';
+
 
 //********************functions********************************
 
@@ -42,14 +45,36 @@ function fetchAnalyticSettings(profileId, callback) {
    });
 }
 
+function createCdrEntry(data, finishedCallback) {
+
+  const options = {
+    method: 'POST',
+    url: ANALYTICS_SERVICE_URL,
+    json: data,
+    headers: {
+      "voxbone-ai-action": "create-cdr",
+      "x-analytics-service-key": ANALYTICS_SERVICE_KEY
+    }
+  };
+
+  request(options, function(error, response, body) {
+    if (!error)
+      finishedCallback(null, body);
+    else
+      finishedCallback(error, body);
+   });
+}
+
+
 function createTranscriptEntry(data, finishedCallback) {
 
   const options = {
     method: 'POST',
-    url: SITE_BASE_URL + '/analytics/transcripts',
+    url: ANALYTICS_SERVICE_URL,
     json: data,
     headers: {
-      "voxbone-ai-app-key": VOXBONE_AI_APP_KEY
+    "voxbone-ai-action": "create-analytics-doc",
+      "x-analytics-service-key": ANALYTICS_SERVICE_KEY
     }
   };
 
@@ -84,7 +109,9 @@ function uploadToIbmWatson(event, settings, finishedCallback) {
       "service": 'ibmWatson',
       "participantId": event.data.metadata['participant-id'],
       "profileId": event.data.metadata['profile-id'],
-      "callId": event.data.metadata['call-id']
+      "callId": event.data.metadata['call-id'],
+      "analyticSettings": settings,
+      "recordingMetadata": Object.assign(event.data.metadata, {'file-name': event.data.name, 'path': event.data.mediaLink})
     };
 
     if (!err && res) {
@@ -94,7 +121,11 @@ function uploadToIbmWatson(event, settings, finishedCallback) {
       data.failureReason = err;
     }
 
-    createTranscriptEntry(data, function() {
+    createTranscriptEntry(data, function(err, body) {
+
+      if (err)
+        console.log(err);
+
       finishedCallback();
     });
   });
@@ -105,7 +136,7 @@ function uploadToGoogleSpeech(event, settings, finishedCallback) {
   const configuration = {
     "config": {
       "encoding": "FLAC",
-      "language_code": settings.googleSpeech.language,
+      "language_code": event.data.metadata['lang'] || settings.googleSpeech.language,
       "enableWordTimeOffsets": true
     },
     "audio":{
@@ -130,7 +161,9 @@ function uploadToGoogleSpeech(event, settings, finishedCallback) {
       "service": 'googleSpeech',
       "participantId": event.data.metadata['participant-id'],
       "profileId": event.data.metadata['profile-id'],
-      "callId": event.data.metadata['call-id']
+      "callId": event.data.metadata['call-id'],
+      "analyticSettings": settings,
+      "recordingMetadata": Object.assign(event.data.metadata, {'file-name': event.data.name, 'path': event.data.mediaLink})
     };
 
     if (!error && !body.error) {
@@ -140,7 +173,11 @@ function uploadToGoogleSpeech(event, settings, finishedCallback) {
       data.failureReason = error || body.error.message;
     }
 
-    createTranscriptEntry(data, function() {
+    createTranscriptEntry(data, function(err, body) {
+
+      if (err)
+        console.log(err);
+
       finishedCallback();
     });
   });
@@ -201,11 +238,12 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
     });
   }
 
+  configuration.configuration.language = event.data.metadata['lang'] || settings.voiceBase.language;
+
   if (settings.voiceBase.numberRedaction || settings.voiceBase.ssnRedaction || settings.voiceBase.pciRedaction)
     configuration.configuration.detections = redaction;
 
-  if (settings.voiceBase.language === 'es-LA' || settings.voiceBase.language === 'pt-BR' || settings.voiceBase.language === 'es-ES') {
-    configuration.configuration.language = settings.voiceBase.language;
+  if (settings.voiceBase.language === 'fr-FR' || settings.voiceBase.language === 'de-DE' || settings.voiceBase.language === 'es-LA' || settings.voiceBase.language === 'pt-BR' || settings.voiceBase.language === 'es-ES') {
     configuration.configuration.keywords = {"semantic": false};
     configuration.configuration.topics = {"semantic": false};
   }
@@ -219,12 +257,12 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
     configuration.configuration.transcripts = vocabularies;
   }
 
-  if (settings.voiceBase.keywordSpottingEnabled && settings.voiceBase.language !== 'es-LA' && settings.voiceBase.language !== 'pt-BR' && settings.voiceBase.language !== 'es-ES') {
+  /*if (settings.voiceBase.keywordSpottingEnabled && settings.voiceBase.language !== 'fr-FR' && settings.voiceBase.language !== 'de-DE' && settings.voiceBase.language !== 'es-LA' && settings.voiceBase.language !== 'pt-BR' && settings.voiceBase.language !== 'es-ES') {
     let keywordsGroups = {
         "groups": [event.data.metadata['profile-id']]
     }
     configuration.configuration.keywords = keywordsGroups;
-  }
+  }*/
 
   var vbRequest = request(options, voiceBaseCallback);
   var form = vbRequest.form();
@@ -239,7 +277,9 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
       "participantId": event.data.metadata['participant-id'],
       "profileId": event.data.metadata['profile-id'],
       "callId": event.data.metadata['call-id'],
-      "redaction": !!configuration.configuration.detections
+      "redaction": !!configuration.configuration.detections,
+      "analyticSettings": settings,
+      "recordingMetadata": Object.assign(event.data.metadata, {'file-name': event.data.name, 'path': event.data.mediaLink})
     };
 
     if (!error && !JSON.parse(body).errors) {
@@ -252,7 +292,11 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
       data.failureReason = JSON.parse(body).errors.error || error;
     }
 
-    createTranscriptEntry(data, function() {
+    createTranscriptEntry(data, function(err, body) {
+
+      if (err)
+        console.log(err);
+
       finishedCallback();
     });
   }
@@ -290,13 +334,13 @@ exports.processFile = function(event, callback) {
   var promises = [];
 
   if (event.data.resourceState === 'exists'
-      // If using ASTRec as the recorder
-      && event.data.metageneration === '2'
-      // If using RTPRec as the recorder
-      // && event.data.metageneration === '1'
+      && event.data.metageneration === '1'
       && event.data.metadata['participant-id'] !== 'none'
       && event.data.metadata['profile-id']
       && event.data.metadata['call-id']) {
+
+    const recordingMetadata = Object.assign(event.data.metadata, {'file-name': event.data.name, 'path': event.data.mediaLink});
+    createCdrEntry(recordingMetadata, function() {});
 
     fetchAnalyticSettings(event.data.metadata['profile-id'], function(error, settings) {
 
@@ -319,7 +363,7 @@ exports.processFile = function(event, callback) {
     });
 
   } else {
-    console.log(`Metadata error for ${event.data.name}`)
+    console.log("Function returned due to metadata missmatch");
     callback();
   }
 
