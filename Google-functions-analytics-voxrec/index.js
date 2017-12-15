@@ -186,98 +186,47 @@ function uploadToGoogleSpeech(event, settings, finishedCallback) {
 
 function uploadToVoiceBase(event, settings, finishedCallback) {
   var options = {
-    url: 'https://apis.voicebase.com/v2-beta/media',
+    url: 'https://apis.voicebase.com/v3/media',
     method: 'POST',
     headers: {
       'Authorization': 'Bearer ' + VOICEBASE_BEARER_TOKEN
     }
   };
 
-  const configuration = {
-    "configuration" : {}
+  let configuration = {
+    "knowledge": {
+      "enableDiscovery" : false
+    },
+    "speechModel": {
+      "language": event.data.metadata['lang'] || settings.voiceBase.language,
+      "features":["voiceFeatures"]
+    }
   };
 
-  let redaction = [];
-
-  if (settings.voiceBase.pciRedaction) {
-    redaction.push({
-      "model": "PCI",
-      "redact": {
-        "transcripts": "[PCI]",
-        "audio": {
-          "tone": 270,
-          "gain": 0.5
-        }
-      }
-    });
-  }
-
-  if (settings.voiceBase.ssnRedaction) {
-    redaction.push({
-      "model": "SSN",
-      "redact": {
-        "transcripts": "[SSN]",
-        "audio": {
-          "tone": 440,
-          "gain": 0.5
-        }
-      }
-    });
-  }
-
-  if (settings.voiceBase.numberRedaction) {
-    redaction.push({
-      "model": "Number",
-      "redact": {
-        "transcripts": "[Num]",
-        "audio": {
-          "tone": 200,
-          "gain": 0.5
-        }
-      }
-    });
-  }
-
-  configuration.configuration.language = event.data.metadata['lang'] || settings.voiceBase.language;
-
-  if (settings.voiceBase.numberRedaction || settings.voiceBase.ssnRedaction || settings.voiceBase.pciRedaction)
-    configuration.configuration.detections = redaction;
-
-  if (settings.voiceBase.language === 'fr-FR' || settings.voiceBase.language === 'de-DE' || settings.voiceBase.language === 'es-LA' || settings.voiceBase.language === 'pt-BR' || settings.voiceBase.language === 'es-ES') {
-    configuration.configuration.keywords = {"semantic": false};
-    configuration.configuration.topics = {"semantic": false};
-  }
-
   if (settings.voiceBase.customVocabularyEnabled) {
-    let vocabularies = {
-      "vocabularies": [{
-        "terms": settings.voiceBase.customVocabulary.replace(/ /g,'').split(",")
-      }]
-    }
-    configuration.configuration.transcripts = vocabularies;
-  }
 
-  /*if (settings.voiceBase.keywordSpottingEnabled && settings.voiceBase.language !== 'fr-FR' && settings.voiceBase.language !== 'de-DE' && settings.voiceBase.language !== 'es-LA' && settings.voiceBase.language !== 'pt-BR' && settings.voiceBase.language !== 'es-ES') {
-    let keywordsGroups = {
-        "groups": [event.data.metadata['profile-id']]
-    }
-    configuration.configuration.keywords = keywordsGroups;
-  }*/
+    const configTerms = settings.voiceBase.customVocabulary.replace(/ /g,',').split(",");
+    let terms = [];
+
+    configTerms.forEach((term) => {
+      terms.push({term});
+    });
+
+    configuration.vocabularies = [{terms}];
+  }
 
   var vbRequest = request(options, voiceBaseCallback);
   var form = vbRequest.form();
-  form.append('media', event.data.mediaLink);
+  form.append('mediaUrl', event.data.mediaLink);
   form.append('configuration', JSON.stringify(configuration));
 
-
   function voiceBaseCallback(error, response, body) {
-
     let data = {
       "service": 'voiceBase',
       "participantId": event.data.metadata['participant-id'],
       "profileId": event.data.metadata['profile-id'],
       "callId": event.data.metadata['call-id'],
-      "redaction": !!configuration.configuration.detections,
+      "redaction": false,
       "analyticSettings": settings,
       "recordingMetadata": Object.assign(event.data.metadata, {'file-name': event.data.name, 'path': event.data.mediaLink})
     };
@@ -289,7 +238,7 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
         data.failureReason = e;
       }
     } else {
-      data.failureReason = JSON.parse(body).errors.error || error;
+      data.failureReason = JSON.parse(body).errors || error;
     }
 
     createTranscriptEntry(data, function(err, body) {
@@ -363,7 +312,7 @@ exports.processFile = function(event, callback) {
     });
 
   } else {
-    console.log("Function returned due to metadata missmatch");
+    console.log("Function returned due to missing metadata or metadata missmatch for file: " + event.data.name);
     callback();
   }
 
