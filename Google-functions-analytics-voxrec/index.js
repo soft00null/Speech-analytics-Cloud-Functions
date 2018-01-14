@@ -17,7 +17,6 @@ const WATSON_USERNAME = '';
 const WATSON_PASSWORD = '';
 const GOOGLE_SPEECH_KEY = '';
 
-
 //********************functions********************************
 
 function fetchAnalyticSettings(profileId, callback) {
@@ -45,27 +44,6 @@ function fetchAnalyticSettings(profileId, callback) {
    });
 }
 
-function createCdrEntry(data, finishedCallback) {
-
-  const options = {
-    method: 'POST',
-    url: ANALYTICS_SERVICE_URL,
-    json: data,
-    headers: {
-      "voxbone-ai-action": "create-cdr",
-      "x-analytics-service-key": ANALYTICS_SERVICE_KEY
-    }
-  };
-
-  request(options, function(error, response, body) {
-    if (!error)
-      finishedCallback(null, body);
-    else
-      finishedCallback(error, body);
-   });
-}
-
-
 function createTranscriptEntry(data, finishedCallback) {
 
   const options = {
@@ -92,12 +70,19 @@ function uploadToIbmWatson(event, settings, finishedCallback) {
     password: WATSON_PASSWORD
   });
 
+  let model;
+
+  if (event.data.metadata['lang'])
+    model = event.data.metadata['lang'] + '_BroadbandModel';
+  else
+    model = settings.ibmWatson.model;
+
   var params = {
     audio: request(event.data.mediaLink),
     content_type: 'audio/flac',
     timestamps: true,
     max_alternatives: 1,
-    model: settings.ibmWatson.model,
+    model: model,
     profanity_filter: settings.ibmWatson.profanityFilter,
     smart_formatting: settings.ibmWatson.smartFormatting,
     inactivity_timeout: 60
@@ -110,6 +95,7 @@ function uploadToIbmWatson(event, settings, finishedCallback) {
       "participantId": event.data.metadata['participant-id'],
       "profileId": event.data.metadata['profile-id'],
       "callId": event.data.metadata['call-id'],
+      "language": model.split('_')[0],
       "analyticSettings": settings,
       "recordingMetadata": Object.assign(event.data.metadata, {'file-name': event.data.name, 'path': event.data.mediaLink})
     };
@@ -133,10 +119,12 @@ function uploadToIbmWatson(event, settings, finishedCallback) {
 
 function uploadToGoogleSpeech(event, settings, finishedCallback) {
 
+  let language = event.data.metadata['lang'] || settings.googleSpeech.language;
+
   const configuration = {
     "config": {
       "encoding": "FLAC",
-      "language_code": event.data.metadata['lang'] || settings.googleSpeech.language,
+      "language_code": language,
       "enableWordTimeOffsets": true
     },
     "audio":{
@@ -163,6 +151,7 @@ function uploadToGoogleSpeech(event, settings, finishedCallback) {
       "profileId": event.data.metadata['profile-id'],
       "callId": event.data.metadata['call-id'],
       "analyticSettings": settings,
+      "language": language,
       "recordingMetadata": Object.assign(event.data.metadata, {'file-name': event.data.name, 'path': event.data.mediaLink})
     };
 
@@ -193,12 +182,11 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
     }
   };
 
+  let language = event.data.metadata['lang'] || settings.voiceBase.language;
+
   let configuration = {
-    "knowledge": {
-      "enableDiscovery" : false
-    },
     "speechModel": {
-      "language": event.data.metadata['lang'] || settings.voiceBase.language,
+      "language": language,
       "features":["voiceFeatures"]
     }
   };
@@ -227,6 +215,7 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
       "profileId": event.data.metadata['profile-id'],
       "callId": event.data.metadata['call-id'],
       "redaction": false,
+      "language": language,
       "analyticSettings": settings,
       "recordingMetadata": Object.assign(event.data.metadata, {'file-name': event.data.name, 'path': event.data.mediaLink})
     };
@@ -283,13 +272,13 @@ exports.processFile = function(event, callback) {
   var promises = [];
 
   if (event.data.resourceState === 'exists'
-      && event.data.metageneration === '1'
-      && event.data.metadata['participant-id'] !== 'none'
-      && event.data.metadata['profile-id']
-      && event.data.metadata['call-id']) {
+    && event.data.metadata
+    && event.data.metageneration === '1'
+    && event.data.metadata['participant-id'] !== 'none'
+    && event.data.metadata['profile-id']
+    && event.data.metadata['call-id']) {
 
     const recordingMetadata = Object.assign(event.data.metadata, {'file-name': event.data.name, 'path': event.data.mediaLink});
-    createCdrEntry(recordingMetadata, function() {});
 
     fetchAnalyticSettings(event.data.metadata['profile-id'], function(error, settings) {
 
