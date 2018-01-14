@@ -186,8 +186,8 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
 
   let configuration = {
     "speechModel": {
-      "language": language,
-      "features":["voiceFeatures"]
+      "language": language
+      //"features":["voiceFeatures"]
     }
   };
 
