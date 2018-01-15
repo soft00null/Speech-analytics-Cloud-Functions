@@ -71,9 +71,10 @@ function uploadToIbmWatson(event, settings, finishedCallback) {
   });
 
   let model;
+  const uriLang = event.data.metadata['lang'] === 'en-GB' ? 'en-UK' : event.data.metadata['lang'];
 
-  if (event.data.metadata['lang'])
-    model = event.data.metadata['lang'] + '_BroadbandModel';
+  if (uriLang)
+    model = uriLang + '_BroadbandModel';
   else
     model = settings.ibmWatson.model;
 
@@ -182,7 +183,8 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
     }
   };
 
-  let language = event.data.metadata['lang'] || settings.voiceBase.language;
+  const uriLang = event.data.metadata['lang'] === 'en-GB' ? 'en-UK' : event.data.metadata['lang'];
+  let language = uriLang || settings.voiceBase.language;
 
   let configuration = {
     "speechModel": {
