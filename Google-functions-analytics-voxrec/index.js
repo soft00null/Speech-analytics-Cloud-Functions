@@ -17,6 +17,7 @@ const WATSON_USERNAME = '';
 const WATSON_PASSWORD = '';
 const GOOGLE_SPEECH_KEY = '';
 
+
 //********************functions********************************
 
 function fetchAnalyticSettings(profileId, callback) {
@@ -189,9 +190,11 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
   let configuration = {
     "speechModel": {
       "language": language
-      //"features":["voiceFeatures"]
     }
   };
+
+  if (language === 'en-US')
+    configuration.speechModel.features = ["advancedPunctuation", "voiceFeatures"];
 
   if (settings.voiceBase.customVocabularyEnabled) {
 
