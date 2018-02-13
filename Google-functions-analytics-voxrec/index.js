@@ -193,8 +193,9 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
     }
   };
 
-  if (language === 'en-US')
+  /*if (language === 'en-US')
     configuration.speechModel.features = ["advancedPunctuation", "voiceFeatures"];
+  */
 
   if (settings.voiceBase.customVocabularyEnabled) {
 
@@ -277,8 +278,9 @@ exports.processFile = function(event, callback) {
   var promises = [];
 
   if (event.data.resourceState === 'exists'
+    && event.data.name.split("-")[0] !== 'mixed'
     && event.data.metadata
-    && event.data.metageneration === '1'
+    && ((event.data.metageneration === '1') || event.data.metadata.retried)
     && event.data.metadata['participant-id'] !== 'none'
     && event.data.metadata['profile-id']
     && event.data.metadata['call-id']) {
