@@ -290,6 +290,7 @@ exports.processFile = function(event, callback) {
     fetchAnalyticSettings(event.data.metadata['profile-id'], function(error, settings) {
 
       if (!error && settings) {
+        settings.services = settings.services.filter(serv => serv !== 'ibmWatson');
         settings.services.forEach((service) => {
           promises.push(uploadToService(service, settings, event));
         });
