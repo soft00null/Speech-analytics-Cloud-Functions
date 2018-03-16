@@ -290,8 +290,22 @@ exports.processFile = function(event, callback) {
     fetchAnalyticSettings(event.data.metadata['profile-id'], function(error, settings) {
 
       if (!error && settings) {
-        settings.services = settings.services.filter(serv => serv !== 'ibmWatson');
-        settings.services.forEach((service) => {
+        let services;
+        if (settings.languageMappings && event.data.metadata['lang']) {
+
+          if (settings.languageMappings[event.data.metadata['lang']])
+            services = settings.languageMappings[event.data.metadata['lang']];
+          else
+            services = settings.languageMappings.default;
+
+        } else {
+          services = settings.services;
+        }
+
+        //Remove ibm watson
+        services = services.filter(serv => serv !== 'ibmWatson');
+
+        services.forEach((service) => {
           promises.push(uploadToService(service, settings, event));
         });
 
