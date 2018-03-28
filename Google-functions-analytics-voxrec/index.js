@@ -30,8 +30,7 @@ function fetchAnalyticSettings(profileId, callback) {
   };
 
   request(options, function(error, response, body) {
-  console.log(error);
-    if (!error) {
+    if (!error && response.statusCode === 200) {
       try {
         callback(null, JSON.parse(body));
       } catch(e) {
@@ -39,14 +38,13 @@ function fetchAnalyticSettings(profileId, callback) {
         callback(e, null);
       }
     } else {
-      callback(error, body);
+      callback('Not found', null);
     }
 
    });
 }
 
 function createTranscriptEntry(data, finishedCallback) {
-
   const options = {
     method: 'POST',
     url: ANALYTICS_SERVICE_URL,
@@ -193,10 +191,6 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
     }
   };
 
-  /*if (language === 'en-US')
-    configuration.speechModel.features = ["advancedPunctuation", "voiceFeatures"];
-  */
-
   if (settings.voiceBase.customVocabularyEnabled) {
 
     const configTerms = settings.voiceBase.customVocabulary.replace(/ /g,',').split(",");
@@ -215,6 +209,9 @@ function uploadToVoiceBase(event, settings, finishedCallback) {
   form.append('configuration', JSON.stringify(configuration));
 
   function voiceBaseCallback(error, response, body) {
+
+
+    console.log(body);
     let data = {
       "service": 'voiceBase',
       "participantId": event.data.metadata['participant-id'],
@@ -269,6 +266,80 @@ function uploadToService(service, settings, event) {
   });
 }
 
+function getTranscriptionServices(profileId, lang) {
+  return new Promise((resolve, reject) => {
+    fetchAnalyticSettings(profileId, function(error, settings) {
+      if (!error && settings) {
+        //The user has a voxbone.ai profile
+        let services;
+
+        if (settings.languageMappings && lang) {
+          // We created a custom languageMappings object for this user
+          if (settings.languageMappings[lang])
+            services = settings.languageMappings[lang];
+          else
+            services = settings.languageMappings.default;
+
+        } else {
+          //Demo user
+          services = settings.services;
+        }
+
+        //Remove ibm watson
+        services = services.filter(serv => serv !== 'ibmWatson');
+        return resolve({services, settings});
+
+      } else if (lang) {
+        //the user doesnt have a voxbone.ai profile. Call came in from the portal. Lang must be present
+        console.log('No analytic settings found for ' + profileId + ' - Using defaults');
+
+        const globalDefaultLanguageMappings = {
+          "default": ["googleSpeech"],
+          "en-US": ["voiceBase"],
+          "en-UK": ["voiceBase"],
+          "en-AU": ["voiceBase"],
+          "pt-BR":  ["voiceBase"],
+          "es-LA": ["voiceBase"],
+          "es-ES":  ["voiceBase"]
+        };
+
+        const defaultSettings = {
+          "ibmWatson": {
+            "smartFormatting": false,
+            "profanityFilter": true,
+            "model": "en-US_BroadbandModel"
+          },
+          "googleSpeech": {
+            "language": "en-US",
+            "speechContextsEnabled": false,
+            "speechContexts": ""
+          },
+          "googleSentimentAnalysis": {
+            "enabled": true,
+          },
+          "voiceBase": {
+            "customVocabulary": "",
+            "customVocabularyEnabled": false,
+            "numberRedaction": false,
+            "ssnRedaction": false,
+            "pciRedaction": false,
+            "keywordSpotting": "",
+            "keywordSpottingEnabled": false,
+            "language": "en-US"
+          },
+        };
+
+        const services = globalDefaultLanguageMappings[lang] || globalDefaultLanguageMappings.default;
+
+        resolve({services: services, settings: defaultSettings});
+      } else {
+        return reject('No possible configuration found for ' + profileId);
+      }
+
+    });
+  });
+}
+
 //*********************************************************
 
 exports.processFile = function(event, callback) {
@@ -286,40 +357,22 @@ exports.processFile = function(event, callback) {
     && event.data.metadata['call-id']) {
 
     const recordingMetadata = Object.assign(event.data.metadata, {'file-name': event.data.name, 'path': event.data.mediaLink});
+    let promises = [];
 
-    fetchAnalyticSettings(event.data.metadata['profile-id'], function(error, settings) {
+    getTranscriptionServices(event.data.metadata['profile-id'], event.data.metadata['lang']).then((config) => {
+      config.services.forEach((service) => {
+        promises.push(uploadToService(service, config.settings, event));
+      });
 
-      if (!error && settings) {
-        let services;
-        if (settings.languageMappings && event.data.metadata['lang']) {
-
-          if (settings.languageMappings[event.data.metadata['lang']])
-            services = settings.languageMappings[event.data.metadata['lang']];
-          else
-            services = settings.languageMappings.default;
-
-        } else {
-          services = settings.services;
-        }
-
-        //Remove ibm watson
-        services = services.filter(serv => serv !== 'ibmWatson');
-
-        services.forEach((service) => {
-          promises.push(uploadToService(service, settings, event));
-        });
-
-        Promise.all(promises).then(() => {
-          callback();
-        }).catch((e) => {
-          callback();
-        })
-
-      } else {
-        console.log('No analytic settings found for ' + event.data.metadata['profile-id']);
+      Promise.all(promises).then(() => {
         callback();
-      }
-
+      }).catch((e) => {
+        console.log(e);
+        callback();
+      })
+    }).catch((e) => {
+      console.log(e);
+      callback();
     });
 
   } else {
