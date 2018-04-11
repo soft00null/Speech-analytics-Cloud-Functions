@@ -55,6 +55,8 @@ function createTranscriptEntry(data, finishedCallback) {
     }
   };
 
+  console.log("Creating Analytic Service entry: " + JSON.stringify(data));
+
   request(options, function(error, response, body) {
     if (!error)
       finishedCallback(null, body);
