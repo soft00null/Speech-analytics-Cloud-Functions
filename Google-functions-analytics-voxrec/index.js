@@ -299,6 +299,7 @@ function getTranscriptionServices(profileId, lang) {
           "default": ["googleSpeech"],
           "en-US": ["voiceBase"],
           "en-UK": ["voiceBase"],
+          "en-GB": ["voiceBase"],
           "en-AU": ["voiceBase"],
           "pt-BR":  ["voiceBase"],
           "es-LA": ["voiceBase"],
