@@ -299,11 +299,13 @@ function getTranscriptionServices(profileId, lang) {
           "default": ["googleSpeech"],
           "en-US": ["voiceBase"],
           "en-UK": ["voiceBase"],
-          "en-GB": ["voiceBase"],
           "en-AU": ["voiceBase"],
+          "en-GB": ["voiceBase"],
           "pt-BR":  ["voiceBase"],
           "es-LA": ["voiceBase"],
-          "es-ES":  ["voiceBase"]
+          "es-ES":  ["voiceBase"],
+          "it-IT":  ["voiceBase"],
+          "de-DE":  ["voiceBase"]
         };
 
         const defaultSettings = {
